@@ -1,0 +1,44 @@
+Lembrando que tem que criar e iniciar um ambiente de trabalho para conseguir tornar o código executável
+utiliza no terminal o código: pyinstaller --onefile seu_script.py  (em "seu_script.py voce digita o NOME do script seu com a extensão .py)
+
+
+
+import openpyxl
+
+def carregar_planilha(nome_arquivo):
+
+    workbook = openpyxl.load_workbook(nome_arquivo)
+    sheet = workbook.active
+    return sheet
+
+def procurar_palavra(sheet, palavra):
+
+    for row in sheet.iter_rows():
+        for cell in row:
+            if cell.value == palavra:
+
+                return row
+    return None
+
+def main():
+    nome_arquivo = "AQUI É O NOME DA PLANILHA.xlsx"
+    sheet = carregar_planilha(nome_arquivo)
+
+    palavra = input("Digite o 'NOME' chave do que precisa buscar': ")
+    resultado = procurar_palavra(sheet, palavra)
+
+    if resultado:
+        print(f"Palavra chave {palavra} foi encontrado, imprimindo as informações")
+        for cell in resultado:
+            print(cell.value, end='\n') #Aqui ira imprimir um de baixo do outro
+        print()
+    else:
+        print(f"Palavra chave {palavra} não encontrado no banco de dados")
+
+
+        
+    input("Pressione 'Enter' para sair e inicie novamente para uma nova busca") #Esse input serve pra deixar o programa aberto, 
+se não tiver esse "pause" o programa roda e fecha automaticamente.
+
+if __name__ == "__main__":
+    main()
