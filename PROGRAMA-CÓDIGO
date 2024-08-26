@@ -1,44 +1,77 @@
-Lembrando que tem que criar e iniciar um ambiente de trabalho para conseguir tornar o código executável
-utiliza no terminal o código: pyinstaller --onefile seu_script.py  (em "seu_script.py voce digita o NOME do script seu com a extensão .py)
+1 ° PASSO CRIAR UM AMBIENTE VIRTUAL UTILIZANDO O TERMINAL (LEMBRAR DE BAIXAR O PYTHON COM O PATH ATIVO NA HORA DA INSTAÇÃO)
+- python -m venv nome_do_ambiente
+- nome_do_ambiente\Scripts\activate
+- pip install openpyxl
+- pip install pyinstaller
+
+2° PASSO TRANSFORMANDO O ARQUIVO EM EXECUTÁVEL
+- pyinstaller --onefile seu_script.py
+
+
+
+LEMBRANDO QUE AS PLANILHAS DEVEM ESTAR DENTRO DA PASTA DO EXECUTÁVEL, QUANDO FAZ TODOS OS PASSOS, O EXECUTÁVEL FICA NA PASTA DIST.
+
+
+
+===================================== LEMBRAR DE SEMPRE SEGUIR O PASSO A PASSO ====================================================
+
 
 
 
 import openpyxl
 
 def carregar_planilha(nome_arquivo):
+    try:
+        workbook = openpyxl.load_workbook(nome_arquivo)
+        return workbook
+    except FileNotFoundError:
+        print(f"Erro: O arquivo '{nome_arquivo}' não foi encontrado.")
+        return None
+    except Exception as e:
+        print(f"Erro ao carregar a planilha: {e}")
+        return None
 
-    workbook = openpyxl.load_workbook(nome_arquivo)
-    sheet = workbook.active
-    return sheet
-
-def procurar_palavra(sheet, palavra):
-
+def procurar_palavra_em_aba(sheet, palavra):
     for row in sheet.iter_rows():
         for cell in row:
-            if cell.value == palavra:
-
+            if cell.value and palavra.lower() == str(cell.value).lower():
                 return row
     return None
 
+def procurar_palavra_em_planilha(workbook, palavra):
+    for sheet in workbook.worksheets:
+        resultado = procurar_palavra_em_aba(sheet, palavra)
+        if resultado:
+            return sheet.title, resultado
+    return None, None
+
 def main():
-    nome_arquivo = "AQUI É O NOME DA PLANILHA.xlsx"
-    sheet = carregar_planilha(nome_arquivo)
+    # Lista de arquivos de planilhas que você deseja verificar
+    arquivos_planilhas = ["nome da planilha.xlsx", "nome da planilha", "nome da planilha.xlsx"] # AQUI É O NOME DAS PLANILHAS QUE QUER PESQUISAR, PODE SER VÁRIAS PLANILHAS
 
-    palavra = input("Digite o 'NOME' chave do que precisa buscar': ")
-    resultado = procurar_palavra(sheet, palavra)
+    while True:
+        palavra = input("Coloque o serial que deseja buscar (ou 'sair' para encerrar): ")
+        if palavra.lower() == 'sair':
+            print("Encerrando o programa.")
+            break
 
-    if resultado:
-        print(f"Palavra chave {palavra} foi encontrado, imprimindo as informações")
-        for cell in resultado:
-            print(cell.value, end='\n') #Aqui ira imprimir um de baixo do outro
-        print()
-    else:
-        print(f"Palavra chave {palavra} não encontrado no banco de dados")
+        encontrado = False
+        for nome_arquivo in arquivos_planilhas:
+            workbook = carregar_planilha(nome_arquivo)
+            if workbook:
+                aba, resultado = procurar_palavra_em_planilha(workbook, palavra)
+                if resultado:
+                    print(f"Serial '{palavra}' encontrado no arquivo '{nome_arquivo}', aba '{aba}':")
+                    for cell in resultado:
+                        print("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+                        print(cell.value)
+                    encontrado = True
+                    break
+            else:
+                print(f"Não foi possível carregar o arquivo '{nome_arquivo}'.")
 
-
-        
-    input("Pressione 'Enter' para sair e inicie novamente para uma nova busca") #Esse input serve pra deixar o programa aberto, 
-se não tiver esse "pause" o programa roda e fecha automaticamente.
+        if not encontrado:
+            print(f"Serial '{palavra}' não encontrado em nenhuma planilha.")
 
 if __name__ == "__main__":
     main()
